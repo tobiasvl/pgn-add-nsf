@@ -17,7 +17,8 @@ logging.basicConfig(filename='%s.log' % (__file__),level=logging.DEBUG)
 pgn_in = 'NewGame.pgn'
 nsf_file = 'elo.csv'
 pgn_out_nsf = open('%s_with_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
-pgn_out_no_nsf = open('%s_missing_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
+pgn_out_one_nsf = open('%s_one_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
+pgn_out_no_nsf = open('%s_no_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
 
 nsf_players = {}
 
@@ -114,6 +115,11 @@ with open(pgn_in, 'r') as f:
                 pgn_out_nsf.write(l)
 
             pgn_out_nsf.write('\n')
+        elif colors_with_nsf['Black'] or colors_with_nsf['White']:
+            for l in pgn_game:
+                pgn_out_one_nsf.write(l)
+
+            pgn_out_one_nsf.write('\n')
         else:
             games_missing += 1
             for l in pgn_game:
@@ -131,6 +137,7 @@ with open(pgn_in, 'r') as f:
 
 pgn_out_nsf.close()
 pgn_out_no_nsf.close()
+pgn_out_one_nsf.close()
 
 logging.debug(games_with)
 logging.debug(games_missing)
