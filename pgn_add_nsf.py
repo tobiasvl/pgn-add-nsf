@@ -12,10 +12,17 @@
 import csv
 import re
 import logging
+import argparse
+
+parser = argparse.ArgumentParser()
+requiredNamed = parser.add_argument_group('required named arguments')
+requiredNamed.add_argument('-p', '--pgn', help='Input file name for PGN database', required=True)
+requiredNamed.add_argument('-e', '--elo', help='Input file name for player database', required=True)
+args = parser.parse_args()
 
 logging.basicConfig(filename='%s.log' % (__file__),level=logging.DEBUG)
-pgn_in = 'NewGame.pgn'
-nsf_file = 'elo.csv'
+pgn_in = args.pgn
+nsf_file = args.elo
 pgn_out_nsf = open('%s_with_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
 pgn_out_one_nsf = open('%s_one_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
 pgn_out_no_nsf = open('%s_no_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
