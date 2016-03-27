@@ -23,8 +23,9 @@ args = parser.parse_args()
 logging.basicConfig(filename='%s.log' % (__file__),level=logging.DEBUG)
 pgn_in = args.pgn
 nsf_file = args.elo
-pgn_out_nsf = open('%s_with_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
-pgn_out_one_nsf = open('%s_one_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
+pgn_out_nsf = open('%s_both_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
+pgn_out_white_nsf = open('%s_white_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
+pgn_out_black_nsf = open('%s_black_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
 pgn_out_no_nsf = open('%s_no_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
 
 nsf_players = {}
@@ -120,8 +121,10 @@ with open(pgn_in, 'r') as f:
 
         if colors_with_nsf['Black'] and colors_with_nsf['White']:
             pgn_file = pgn_out_nsf
-        elif colors_with_nsf['Black'] or colors_with_nsf['White']:
-            pgn_file = pgn_out_one_nsf
+        elif colors_with_nsf['Black'] and not colors_with_nsf['White']:
+            pgn_file = pgn_out_black_nsf
+        elif colors_with_nsf['White'] and not colors_with_nsf['Black']:
+            pgn_file = pgn_out_white_nsf
         else:
             pgn_file = pgn_out_no_nsf
 
@@ -137,4 +140,5 @@ with open(pgn_in, 'r') as f:
 
 pgn_out_nsf.close()
 pgn_out_no_nsf.close()
-pgn_out_one_nsf.close()
+pgn_out_white_nsf.close()
+pgn_out_black_nsf.close()
