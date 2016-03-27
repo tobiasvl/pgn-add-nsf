@@ -24,9 +24,6 @@ nsf_players = {}
 
 players_same_name = []
 
-games_missing = 0
-games_with = 0
-
 # Read NSF players from CSV file
 with open(nsf_file, 'rb') as csvfile:
     csvfile.readline()
@@ -59,7 +56,7 @@ with open(pgn_in, 'r') as f:
         nsf = ''
 
         # Read PGN tags and add NSF ID tags where available
-        while line != '\n':
+        while line not in ['\n', '\r\n']:
             pgn_game.append(line)
     
             m = re.search('\[(White|Black) "(.*)"\]', line)
@@ -86,50 +83,46 @@ with open(pgn_in, 'r') as f:
                         continue
     
                 colors_with_nsf[color] = True
-                pgn_game.append('[%sNSF "%s"]\n' % (color, nsf))
+                newline = '\n'
+
+                if line.endswith('\r\n'):
+                    newline = '\r\n'
+
+                pgn_game.append('[%sNSF "%s"]%s' % (color, nsf, newline))
 
             line = f.readline()
             lineno += 1
             logging.debug("%s %s" % (lineno, line))
     
         # We have read the PGN tags
-        assert line == '\n'
+        assert line in ['\n', '\r\n']
         pgn_game.append(line)
         line = f.readline()
         lineno += 1
         logging.debug("%s %s" % (lineno, line))
 
         # Read movetext
-        while line and line != '\n':
+        while line and line not in ['\n', '\r\n']:
             pgn_game.append(line)
             line = f.readline()
             lineno += 1
             logging.debug("%s %s" % (lineno, line))
 
         # We have read a game, read the next one
-        assert line == '\n' or not line
+        assert line in ['\n', '\r\n'] or not line
 
         if colors_with_nsf['Black'] and colors_with_nsf['White']:
-            games_with += 1
-            for l in pgn_game:
-                pgn_out_nsf.write(l)
-
-            pgn_out_nsf.write('\n')
+            pgn_file = pgn_out_nsf
         elif colors_with_nsf['Black'] or colors_with_nsf['White']:
-            for l in pgn_game:
-                pgn_out_one_nsf.write(l)
-
-            pgn_out_one_nsf.write('\n')
+            pgn_file = pgn_out_one_nsf
         else:
-            games_missing += 1
-            for l in pgn_game:
-                pgn_out_no_nsf.write(l)
+            pgn_file = pgn_out_no_nsf
 
-            pgn_out_no_nsf.write('\n')
+        for l in pgn_game:
+            pgn_file.write(l)
 
-        # TODO Handle poorly formatted PGN files:
-        # * two blank lines in a row
-        # * comment with two blank lines on each side
+        if line in ['\n', '\r\n']:
+            pgn_file.write(line)
 
         line = f.readline()
         lineno += 1
@@ -138,6 +131,3 @@ with open(pgn_in, 'r') as f:
 pgn_out_nsf.close()
 pgn_out_no_nsf.close()
 pgn_out_one_nsf.close()
-
-logging.debug(games_with)
-logging.debug(games_missing)
