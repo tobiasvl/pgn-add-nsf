@@ -66,32 +66,38 @@ with open(pgn_in, 'r') as f:
         # Read PGN tags and add NSF ID tags where available
         while line not in ['\n', '\r\n']:
             pgn_game.append(line)
-    
+
             m = re.search('\[(White|Black) "(.*)"\]', line)
-            
+
             if m:
                 color = m.group(1)
-                name = m.group(2).replace(',', '') # NSF bruker ikke komma mellom etter- og fornavn
+                name = m.group(2)
+
+                # NSF does not use commas between last name and given name(s)
+                name = name.replace(',', '')
     
                 try:
+                    # Look up name directly
                     nsf = nsf_players[name]
                 except:
-                    logging.info('%s player not found in NSF database: %s' % (color, name))
+                    # Attempt fuzzy matching
                     try:
-                        if name == name.replace('.', ''):
-                            line = f.readline()
-                            lineno += 1
-                            logging.debug("%s %s" % (lineno, line))
-                            continue
-                        else:
-                            name = name.replace('.', '')
-                            nsf = nsf_players[name]
+                        fuzzy_name = name.replace('.', '')
+                        nsf = nsf_players[fuzzy_name]
                     except:
-                        logging.info('%s player not found in NSF database: %s' % (color, name))
-                        line = f.readline()
-                        lineno += 1
-                        logging.debug("%s %s" % (lineno, line))
-                        continue
+                        try:
+                            fuzzy_name = re.sub(r'([A-Z])\. ([A-Z])\.', r'\1.\2.', name)
+                            nsf = nsf_players[fuzzy_name]
+                        except:
+                            try:
+                                fuzzy_name = re.sub(r'([A-Z])\. ([A-Z])\.', r'\1 \2', name)
+                                nsf = nsf_players[fuzzy_name]
+                            except:
+                                logging.info('%s player not found in NSF database: %s' % (color, name))
+                                line = f.readline()
+                                lineno += 1
+                                logging.debug("%s %s" % (lineno, line))
+                                continue
 
                 logging.info('%s player found in NSF database: %s (%s)' % (color, name, nsf))
                 colors_with_nsf[color] = True
