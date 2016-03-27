@@ -20,7 +20,7 @@ requiredNamed.add_argument('-p', '--pgn', help='Input file name for PGN database
 requiredNamed.add_argument('-e', '--elo', help='Input file name for player database', required=True)
 args = parser.parse_args()
 
-logging.basicConfig(filename='%s.log' % (__file__),level=logging.DEBUG)
+logging.basicConfig(filename='%s.log' % (__file__),level=logging.INFO)
 pgn_in = args.pgn
 nsf_file = args.elo
 pgn_out_nsf = open('%s_both_nsf_id.pgn' % (pgn_in.split('.')[0]), 'w')
@@ -76,20 +76,24 @@ with open(pgn_in, 'r') as f:
                 try:
                     nsf = nsf_players[name]
                 except:
-                    logging.debug('Player not found in NSF database: %s' % name)
-                    line = f.readline()
-                    lineno += 1
-                    logging.debug("%s %s" % (lineno, line))
-                    continue
+                    logging.info('%s player not found in NSF database: %s' % (color, name))
                     try:
-                        nsf = nsf_players[name.replace('.', '')]
+                        if name == name.replace('.', ''):
+                            line = f.readline()
+                            lineno += 1
+                            logging.debug("%s %s" % (lineno, line))
+                            continue
+                        else:
+                            name = name.replace('.', '')
+                            nsf = nsf_players[name]
                     except:
-                        logging.debug('Player not found in NSF database: %s' % name)
+                        logging.info('%s player not found in NSF database: %s' % (color, name))
                         line = f.readline()
                         lineno += 1
                         logging.debug("%s %s" % (lineno, line))
                         continue
-    
+
+                logging.info('%s player found in NSF database: %s (%s)' % (color, name, nsf))
                 colors_with_nsf[color] = True
                 newline = '\n'
 
